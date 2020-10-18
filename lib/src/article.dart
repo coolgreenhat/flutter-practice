@@ -1,27 +1,63 @@
-class Article {
-  final String by;
-  final int id;
-  final int score;
-  final int time;
-  final String title;
-  final String url;
+import 'dart:convert' as  json;
+import 'package:built_value/built_value.dart';
+import 'package:built_value/serializer.dart';
+import 'package:built_collection/built_collection.dart';
+import 'serializers.dart';
 
-  const Article({ this.by,
-    this.id,
-    this.title,
-    this.score,
-    this.time,
-    this.url,
-  });
+part 'article.g.dart';
+
+abstract class Article implements Built<Article, ArticleBuilder> {
+  static Serializer<Article> get serializer => _$articleSerializer;
+
+  int get id;
+
+  @nullable
+  bool get deleted;
+  String get type;
+  String get by;
+  int get time;
+
+  @nullable
+  String get text;
+
+  @nullable
+  bool get dead;
+
+  @nullable
+  int get parent;
+
+  @nullable
+  int get poll;
+  BuiltList<int> get kids;
+
+  @nullable
+  String get url;
+
+  @nullable
+  int get score;
+
+  @nullable
+  String get title;
+  BuiltList<int> get parts;
+
+  @nullable
+  int get descendants;
+
+  Article._();
+  factory Article([void Function(ArticleBuilder) updates]) = _$Article;
 }
-  final articles = [
-    new Article(
-        by: "dhouston",
-        id: 8863,
-        score: 111,
-        time: 1175714200,
-        title: "My YC app: Dropbox - Throw away your USB drive",
-        url: "http://www.getdropbox.com/u/2/screencast.html"
 
-    )
-  ];
+List<int> parseTopStories(String jsonStr) {
+  final parsed = json.jsonDecode(jsonStr);
+  final listOfIds = List<int>.from(parsed);
+  return listOfIds;
+}
+
+Article parseArticle(String jsonStr) {
+  final parsed = json.jsonDecode(jsonStr);
+  Article article =
+    standardSerializers.deserializeWith(Article.serializer, parsed);
+  return article;
+}
+
+
