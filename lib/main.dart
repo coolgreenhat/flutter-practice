@@ -1,12 +1,23 @@
+import 'dart:collection';
+
 import 'package:flutter/material.dart';
-import 'src/article.dart';
+import 'package:flutter_app/src/app_bloc.dart';
+import 'package:flutter_app/src/article.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:http/http.dart' as http;
+
 void main() {
-  runApp(MyApp());
+  final appBloc = HackerNewsBloc();
+  runApp(MyApp(bloc:appBloc));
 }
 
 class MyApp extends StatelessWidget {
+  final HackerNewsBloc bloc;
+
+  MyApp({
+    Key key,
+    this.bloc,
+  }) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -17,15 +28,14 @@ class MyApp extends StatelessWidget {
 
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home: MyHomePage(title: 'Flutter Demo Home Page', bloc: bloc,),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
-
+  final HackerNewsBloc bloc;
+  MyHomePage({Key key, this.title, this.bloc}) : super(key: key);
   final String title;
 
   @override
@@ -33,38 +43,19 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  List<int> _ids = [ 24799660,24789865,24777268,24798302,24776748,24780798,24788850,24789379,24791357,24789070,24770617,24778073,24758772,24817304,24790055,24754662]; //articles;
-
-  Future<Article> _getArticle(int id) async {
-    final storyUrl = 'https://hacker-news.firebaseio.com/v0/item/$id.json';
-    final storyRes = await http.get(storyUrl);
-    if (storyRes  .statusCode == 200 ) {
-      return parseArticle(storyRes.body);
-    }
-    return null;
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: ListView(
-          children: _ids.map((i) =>
-            FutureBuilder<Article>(
-              future: _getArticle(i),
-              builder: (BuildContext context, AsyncSnapshot<Article> snapshot) {
-                if(snapshot.connectionState == ConnectionState.done){
-                  return _buildItem(snapshot.data);
-                }
-                else {
-                  return Center(child: CircularProgressIndicator());
-                }
-              }
-            )
-          ).toList(),
-      ),
+      body: StreamBuilder<UnmodifiableListView<Article>>(
+        stream: widget.bloc.articles,
+        initialData: UnmodifiableListView<Article>([]),
+        builder: (context, snapshot) => ListView(
+          children: snapshot.data.map(_buildItem).toList(),
+        ),
+      )
     );
   }
 
