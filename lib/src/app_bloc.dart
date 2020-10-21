@@ -4,16 +4,40 @@ import 'package:flutter_app/src/article.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:http/http.dart' as http;
 
+enum StoriesType {
+  topStories,
+  newStories,
+}
 class HackerNewsBloc {
   final _articlesSubject = BehaviorSubject<UnmodifiableListView<Article>>();
 
   var _articles = <Article>[];
 
-  List<int> _ids = [ 24799660,24789865,24777268,24798302,24776748,24780798,24788850,24789379,24791357,24789070,24770617,24778073,24758772,24817304,24790055,24754662];
+  Sink<StoriesType> get storiesType => _storiesTypeController.sink;
+
+  final _storiesTypeController = StreamController<StoriesType>();
+
+ static List<int> _newIds = [ 24789379,24791357,24789070,24770617,24778073,24758772,24817304,24790055,24754662];
+
+ static List<int> _topIds = [
+   24799660,24789865,24777268,24798302,24776748,24780798,24788850,
+ ];
 
   // ignore: non_constant_identifier_names
   HackerNewsBloc() {
-    _updateArticles().then((_){
+    _getArticlesAndUpdate(_topIds);
+    
+    _storiesTypeController.stream.listen((storiesType) {
+      if (storiesType == StoriesType.newStories) {
+        _getArticlesAndUpdate(_newIds);
+      } else {
+        _getArticlesAndUpdate(_topIds);
+      }
+    });
+  }
+
+  _getArticlesAndUpdate(List<int> ids) {
+    _updateArticles(ids).then((_) {
       _articlesSubject.add(UnmodifiableListView(_articles));
     });
   }
@@ -29,11 +53,12 @@ class HackerNewsBloc {
     return null;
   }
 
-  Future<Null> _updateArticles() async{
-    final futureArticles = _ids.map((id) => _getArticle(id));
+  Future<Null> _updateArticles(List<int> articleIds) async{
+    final futureArticles = articleIds.map((id) => _getArticle(id));
     final articles = await Future.wait(futureArticles);
     _articles = articles;
   }
+
 
 
 
