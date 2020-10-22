@@ -59,7 +59,7 @@ class _MyHomePageState extends State<MyHomePage> {
       bottomNavigationBar: BottomNavigationBar(currentIndex: 0,
         items:[
           BottomNavigationBarItem(label: 'Top Stories', icon: Icon(Icons.arrow_drop_up),),
-          BottomNavigationBarItem(label: 'New Stories', icon: Icon(Icons.new_releases),)
+          BottomNavigationBarItem(label: 'New Stories', icon: Icon(Icons.new_releases),),
         ],
         onTap: (index) {
         if (index == 0){
