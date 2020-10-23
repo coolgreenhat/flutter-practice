@@ -1,9 +1,11 @@
 import 'dart:collection';
 
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_app/src/app_bloc.dart';
 import 'package:flutter_app/src/article.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 void main() {
   final appBloc = HackerNewsBloc();
@@ -43,11 +45,13 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  int _currentIndex = 0;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
+        leading: LoadingInfo(widget.bloc.isLoading),
       ),
       body: StreamBuilder<UnmodifiableListView<Article>>(
         stream: widget.bloc.articles,
@@ -56,7 +60,8 @@ class _MyHomePageState extends State<MyHomePage> {
           children: snapshot.data.map(_buildItem).toList(),
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(currentIndex: 0,
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
         items:[
           BottomNavigationBarItem(label: 'Top Stories', icon: Icon(Icons.arrow_drop_up),),
           BottomNavigationBarItem(label: 'New Stories', icon: Icon(Icons.new_releases),),
@@ -68,6 +73,9 @@ class _MyHomePageState extends State<MyHomePage> {
         else {
           widget.bloc.storiesType.add(StoriesType.newStories);
         }
+        setState(() {
+          _currentIndex = index;
+        });
         },
       ),
     );
@@ -98,5 +106,21 @@ class _MyHomePageState extends State<MyHomePage> {
         ],
       ),
     );
+  }
+}
+
+class LoadingInfo extends StatelessWidget {
+  Stream<bool> _isLoading;
+  LoadingInfo(this._isLoading);
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder(
+      stream: _isLoading,
+      builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
+        // if (snapshot.hasData && snapshot.data)
+          return Icon(FontAwesomeIcons.hackerNewsSquare);
+        // return Container();
+      });
   }
 }
