@@ -110,7 +110,7 @@ class _MyHomePageState extends State<MyHomePage> {
 }
 
 class LoadingInfo extends StatefulWidget {
-  Stream<bool> _isLoading;
+  final Stream<bool> _isLoading;
 
   LoadingInfo(this._isLoading);
 

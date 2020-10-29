@@ -8,6 +8,7 @@ enum StoriesType {
   topStories,
   newStories,
 }
+
 class HackerNewsBloc {
  static List<int> _newIds = [ 24789379,24791357,24789070,24770617,24778073,24758772,24817304,24790055,24754662];
 
@@ -27,28 +28,44 @@ class HackerNewsBloc {
 
   // ignore: non_constant_identifier_names
   HackerNewsBloc() {
-    _getArticlesAndUpdate(_topIds);
-    
-    _storiesTypeController.stream.listen((storiesType) {
-      if (storiesType == StoriesType.newStories) {
-        _getArticlesAndUpdate(_newIds);
-      } else {
-        _getArticlesAndUpdate(_topIds);
-      }
+    _initializeArticles();
+
+    _storiesTypeController.stream.listen((storiesType) async{
+        _getArticlesAndUpdate(await _getIds(storiesType));
     });
   }
 
- Sink<StoriesType> get storiesType => _storiesTypeController.sink;
+  Future<void> _initializeArticles() async {
+    _getArticlesAndUpdate(await _getIds(StoriesType.topStories));
+  }
 
- Stream<UnmodifiableListView<Article>> get articles => _articlesSubject.stream;
+  Stream<UnmodifiableListView<Article>> get articles => _articlesSubject.stream;
+
+  Sink<StoriesType> get storiesType => _storiesTypeController.sink;
+
+  void close() {
+    _storiesTypeController.close();
+  }
+
+  Future <List<int>> _getIds(StoriesType type) async {
+    final partUrl = type == StoriesType.topStories ? 'top' : 'new';
+    final url = '$_baseUrl${partUrl}Stories.json';
+    final response = await http.get(url);
+    if (response.statusCode != 200) {
+      throw HackerNewsApiError("Stories couldn't be fetched.");
+    }
+    return parseTopStories(response.body).take(10).toList();
+  }
+
+  static const _baseUrl = 'https://hacker-news.firebaseio.com/v0/';
 
   Future<Article> _getArticle(int id) async {
-    final storyUrl = 'https://hacker-news.firebaseio.com/v0/item/$id.json';
+    final storyUrl = '$_baseUrl/item/$id.json';
     final storyRes = await http.get(storyUrl);
     if (storyRes  .statusCode == 200 ) {
       return parseArticle(storyRes.body);
     }
-    return null;
+    throw HackerNewsApiError("Article $id couldn't be fetched");
   }
 
  _getArticlesAndUpdate(List<int> ids) async {
@@ -63,4 +80,10 @@ class HackerNewsBloc {
     final articles = await Future.wait(futureArticles);
     _articles = articles;
   }
+}
+
+class HackerNewsApiError extends Error {
+  final String message;
+
+  HackerNewsApiError(this.message);
 }
