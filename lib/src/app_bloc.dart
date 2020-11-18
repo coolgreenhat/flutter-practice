@@ -49,9 +49,10 @@ class HackerNewsBloc {
 
   Future <List<int>> _getIds(StoriesType type) async {
     final partUrl = type == StoriesType.topStories ? 'top' : 'new';
-    final url = '$_baseUrl${partUrl}Stories.json';
+    final url = '$_baseUrl${partUrl}stories.json';
     final response = await http.get(url);
     if (response.statusCode != 200) {
+      print(url);
       throw HackerNewsApiError("Stories couldn't be fetched.");
     }
     return parseTopStories(response.body).take(10).toList();
@@ -84,6 +85,5 @@ class HackerNewsBloc {
 
 class HackerNewsApiError extends Error {
   final String message;
-
   HackerNewsApiError(this.message);
 }
