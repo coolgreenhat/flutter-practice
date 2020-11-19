@@ -91,7 +91,7 @@ class _MyHomePageState extends State<MyHomePage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              Text(article.type),
+              Text('${article.descendants} comments'),
               IconButton(
                 icon: Icon(Icons.launch),
                 color: Colors.green,

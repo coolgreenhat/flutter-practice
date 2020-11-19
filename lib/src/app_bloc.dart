@@ -10,11 +10,13 @@ enum StoriesType {
 }
 
 class HackerNewsBloc {
- static List<int> _newIds = [ 24789379,24791357,24789070,24770617,24778073,24758772,24817304,24790055,24754662];
+  HashMap<int, Article> _cachedArticles;
 
- static List<int> _topIds = [
+  static List<int> _newIds = [ 24789379,24791357,24789070,24770617,24778073,24758772,24817304,24790055,24754662];
+
+  static List<int> _topIds = [
    24799660,24789865,24777268,24798302,24776748,24780798,24788850,
- ];
+  ];
 
   Stream<bool> get isLoading => _isLoadingSubject.stream;
 
@@ -28,6 +30,7 @@ class HackerNewsBloc {
 
   // ignore: non_constant_identifier_names
   HackerNewsBloc() {
+    _cachedArticles = HashMap<int, Article>();
     _initializeArticles();
 
     _storiesTypeController.stream.listen((storiesType) async{
@@ -35,13 +38,13 @@ class HackerNewsBloc {
     });
   }
 
-  Future<void> _initializeArticles() async {
-    _getArticlesAndUpdate(await _getIds(StoriesType.topStories));
-  }
-
   Stream<UnmodifiableListView<Article>> get articles => _articlesSubject.stream;
 
   Sink<StoriesType> get storiesType => _storiesTypeController.sink;
+
+  Future<void> _initializeArticles() async {
+    _getArticlesAndUpdate(await _getIds(StoriesType.topStories));
+  }
 
   void close() {
     _storiesTypeController.close();
@@ -61,12 +64,17 @@ class HackerNewsBloc {
   static const _baseUrl = 'https://hacker-news.firebaseio.com/v0/';
 
   Future<Article> _getArticle(int id) async {
-    final storyUrl = '$_baseUrl/item/$id.json';
-    final storyRes = await http.get(storyUrl);
-    if (storyRes  .statusCode == 200 ) {
-      return parseArticle(storyRes.body);
+    if (!_cachedArticles.containsKey(id)) {
+      final storyUrl = '$_baseUrl/item/$id.json';
+      final storyRes = await http.get(storyUrl);
+      if (storyRes.statusCode == 200) {
+        _cachedArticles[id] = parseArticle(storyRes.body);
+      }
+      else {
+        throw HackerNewsApiError("Article $id couldn't be fetched");
+      }
     }
-    throw HackerNewsApiError("Article $id couldn't be fetched");
+    return _cachedArticles[id];
   }
 
  _getArticlesAndUpdate(List<int> ids) async {
