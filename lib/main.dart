@@ -20,14 +20,20 @@ class MyApp extends StatelessWidget {
     this.bloc,
   }) : super(key: key);
 
+  static const appColor = Colors.white;
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-
-        primarySwatch: Colors.green,
-
+        primaryColor: appColor,
+        scaffoldBackgroundColor: appColor,
+        canvasColor: Colors.black,
+        textTheme: Theme.of(context)
+          .textTheme
+          .copyWith(caption: TextStyle(color: Colors.white54),
+          subtitle1: TextStyle(fontFamily: 'SansitaSwashed')
+        ),
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       home: MyHomePage(title: 'Flutter Hacker News', bloc: bloc,),
@@ -51,7 +57,8 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
-        leading: LoadingInfo(widget.bloc.isLoading),
+        // leading: LoadingInfo(widget.bloc.isLoading),
+        elevation: 0.0,
       ),
       body: StreamBuilder<UnmodifiableListView<Article>>(
         stream: widget.bloc.articles,
@@ -84,14 +91,16 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget _buildItem(Article article) {
     return Padding(
       key:Key(article.title),
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.symmetric(horizontal:4.0, vertical: 12.0),
       child: ExpansionTile(
         title: Text(article.title ?? '[null]', style: TextStyle(fontSize: 24.0)),
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text('${article.descendants} comments'),
+              SizedBox(width: 16.0),
               IconButton(
                 icon: Icon(Icons.launch),
                 color: Colors.green,
