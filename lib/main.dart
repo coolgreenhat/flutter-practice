@@ -57,8 +57,11 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
-        // leading: LoadingInfo(widget.bloc.isLoading),
+        leading: LoadingInfo(widget.bloc.isLoading),
         elevation: 0.0,
+        actions: [
+         IconButton(icon: Icon(Icons.search), onPressed: () {})
+        ]
       ),
       body: StreamBuilder<UnmodifiableListView<Article>>(
         stream: widget.bloc.articles,
@@ -116,6 +119,33 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
     );
   }
+}
+
+class ArticleSearch extends SearchDelegate<Article> {
+  @override
+  List<Widget> buildActions(BuildContext context) {
+    // TODO: implement buildActions
+    throw UnimplementedError();
+  }
+
+  @override
+  Widget buildLeading(BuildContext context) {
+    // TODO: implement buildLeading
+    throw UnimplementedError();
+  }
+
+  @override
+  Widget buildResults(BuildContext context) {
+    // TODO: implement buildResults
+    throw UnimplementedError();
+  }
+
+  @override
+  Widget buildSuggestions(BuildContext context) {
+    // TODO: implement buildSuggestions
+    throw UnimplementedError();
+  }
+  
 }
 
 class LoadingInfo extends StatefulWidget {
