@@ -63,7 +63,7 @@ class _MyHomePageState extends State<MyHomePage> {
          IconButton(icon: Icon(Icons.search), onPressed: () {
            showSearch(
                context: context,
-               delegate: ArticleSearch());
+               delegate: ArticleSearch(widget.bloc.articles));
          })
         ]
       ),
@@ -126,6 +126,10 @@ class _MyHomePageState extends State<MyHomePage> {
 }
 
 class ArticleSearch extends SearchDelegate<Article> {
+  final Stream<UnmodifiableListView<Article>> articles;
+
+  ArticleSearch(this.articles);
+
   @override
   List<Widget> buildActions(BuildContext context) {
     return [
@@ -151,7 +155,22 @@ class ArticleSearch extends SearchDelegate<Article> {
 
   @override
   Widget buildSuggestions(BuildContext context) {
-    return Container();
+    return StreamBuilder<UnmodifiableListView<Article>>(
+      stream: articles,
+      builder: (context, AsyncSnapshot<UnmodifiableListView<Article>> snapshot){
+        if(!snapshot.hasData){
+          return Center(
+            child: Text('No Data!',)
+          );
+        }
+
+        final results = snapshot.data.where((a) => a.title.toLowerCase().contains(query));
+        
+        return ListView(
+        children: results.map<Widget>((a) => Text(a.title)).toList(),
+        );
+      },
+    );
   }
   
 }
