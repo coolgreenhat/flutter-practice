@@ -60,11 +60,22 @@ class _MyHomePageState extends State<MyHomePage> {
         leading: LoadingInfo(widget.bloc.isLoading),
         elevation: 0.0,
         actions: [
-         IconButton(icon: Icon(Icons.search), onPressed: () {
-           showSearch(
-               context: context,
-               delegate: ArticleSearch(widget.bloc.articles));
-         })
+         Builder(
+           builder: (context) => IconButton(
+               icon: Icon(Icons.search),
+               onPressed: () async {
+                  final Article result = await showSearch(
+                    context: context,
+                    delegate: ArticleSearch(widget.bloc.articles)
+                  );
+             Scaffold.of(context)
+                 .showSnackBar(SnackBar(content: Text(result.title)));
+                  if(await canLaunch(result.url)) {
+                    launch(result.url);
+                  }
+           },
+           ),
+         )
         ]
       ),
       body: StreamBuilder<UnmodifiableListView<Article>>(
@@ -167,7 +178,13 @@ class ArticleSearch extends SearchDelegate<Article> {
         final results = snapshot.data.where((a) => a.title.toLowerCase().contains(query));
         
         return ListView(
-        children: results.map<Widget>((a) => Text(a.title)).toList(),
+        children: results.map<Widget>((a) => ListTile(
+            title:Text(a.title, style: Theme.of(context).textTheme.subtitle1.copyWith(fontSize: 16.0,color: Colors.green)),
+            leading: Icon(Icons.book),
+          onTap: () {
+              close(context, a);
+          }
+        )).toList(),
         );
       },
     );
